@@ -1,5 +1,4 @@
 import nltk
-nltk.download('punkt')
 from nltk.stem.lancaster import LancasterStemmer
 stemmer = LancasterStemmer()
 
@@ -20,7 +19,7 @@ except:
     words = []
     labels = []
     docs_x = []
-    docs_y = [] 
+    docs_y = []
 
     for intent in data["intents"]:
         for pattern in intent["patterns"]:
@@ -29,13 +28,13 @@ except:
             docs_x.append(wrds)
             docs_y.append(intent["tag"])
 
-        if intent["tag"] not in labels: 
+        if intent["tag"] not in labels:
             labels.append(intent["tag"])
 
     words = [stemmer.stem(w.lower()) for w in words if w != "?"]
     words = sorted(list(set(words)))
 
-    labels = sorted(labels) 
+    labels = sorted(labels)
 
     training = []
     output = []
@@ -54,7 +53,7 @@ except:
                 bag.append(0)
 
         output_row = out_empty[:]
-        output_row[labels.index(docs_y[x])] = 1 
+        output_row[labels.index(docs_y[x])] = 1
 
         training.append(bag)
         output.append(output_row)
@@ -76,11 +75,11 @@ net = tflearn.regression(net)
 
 model = tflearn.DNN(net)
 
-# try:
-#     model.load("model.tflearn")
-# except:
-model.fit(training, output, n_epoch=1000, batch_size=8, show_metric=True)
-model.save("model.tflearn")
+try:
+    model.load("model.tflearn")
+except:
+    model.fit(training, output, n_epoch=1000, batch_size=8, show_metric=True)
+    model.save("model.tflearn")
 
 
 def bag_of_words(s, words):
@@ -92,8 +91,8 @@ def bag_of_words(s, words):
     for se in s_words:
         for i, w in enumerate(words):
             if w == se:
-                bag[1] = 1
-
+                bag[i] = 1
+            
     return numpy.array(bag)
 
 
@@ -105,15 +104,13 @@ def chat():
             break
 
         results = model.predict([bag_of_words(inp, words)])
-        result_index = numpy.argmax(results)
-        tag = labels[result_index]
-        print(tag)
+        results_index = numpy.argmax(results)
+        tag = labels[results_index]
+
+        for tg in data["intents"]:
+            if tg['tag'] == tag:
+                responses = tg['responses']
+
+        print(random.choice(responses))
+
 chat()
-            
-
-
-
-    
-
-        
-
